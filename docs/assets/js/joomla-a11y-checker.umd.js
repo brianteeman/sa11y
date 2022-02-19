@@ -487,13 +487,21 @@
         adaptive = _ref2.adaptive,
         roundOffsets = _ref2.roundOffsets,
         isFixed = _ref2.isFixed;
+    var _offsets$x = offsets.x,
+        x = _offsets$x === void 0 ? 0 : _offsets$x,
+        _offsets$y = offsets.y,
+        y = _offsets$y === void 0 ? 0 : _offsets$y;
 
-    var _ref3 = roundOffsets === true ? roundOffsetsByDPR(offsets) : typeof roundOffsets === 'function' ? roundOffsets(offsets) : offsets,
-        _ref3$x = _ref3.x,
-        x = _ref3$x === void 0 ? 0 : _ref3$x,
-        _ref3$y = _ref3.y,
-        y = _ref3$y === void 0 ? 0 : _ref3$y;
+    var _ref3 = typeof roundOffsets === 'function' ? roundOffsets({
+      x: x,
+      y: y
+    }) : {
+      x: x,
+      y: y
+    };
 
+    x = _ref3.x;
+    y = _ref3.y;
     var hasX = offsets.hasOwnProperty('x');
     var hasY = offsets.hasOwnProperty('y');
     var sideX = left;
@@ -538,6 +546,17 @@
       position: position
     }, adaptive && unsetSides);
 
+    var _ref4 = roundOffsets === true ? roundOffsetsByDPR({
+      x: x,
+      y: y
+    }) : {
+      x: x,
+      y: y
+    };
+
+    x = _ref4.x;
+    y = _ref4.y;
+
     if (gpuAcceleration) {
       var _Object$assign;
 
@@ -547,9 +566,9 @@
     return Object.assign({}, commonStyles, (_Object$assign2 = {}, _Object$assign2[sideY] = hasY ? y + "px" : '', _Object$assign2[sideX] = hasX ? x + "px" : '', _Object$assign2.transform = '', _Object$assign2));
   }
 
-  function computeStyles(_ref4) {
-    var state = _ref4.state,
-        options = _ref4.options;
+  function computeStyles(_ref5) {
+    var state = _ref5.state,
+        options = _ref5.options;
     var _options$gpuAccelerat = options.gpuAcceleration,
         gpuAcceleration = _options$gpuAccelerat === void 0 ? true : _options$gpuAccelerat,
         _options$adaptive = options.adaptive,
@@ -838,7 +857,7 @@
 
 
     return clippingParents.filter(function (clippingParent) {
-      return isElement$1(clippingParent) && contains(clippingParent, clipperElement) && getNodeName(clippingParent) !== 'body' && (canEscapeClipping ? getComputedStyle$1(clippingParent).position !== 'static' : true);
+      return isElement$1(clippingParent) && contains(clippingParent, clipperElement) && getNodeName(clippingParent) !== 'body';
     });
   } // Gets the maximum area that the element is visible in due to any number of
   // clipping parents
@@ -3996,6 +4015,7 @@
               //Ruleset checks
               this.checkHeaders();
               this.checkLinkText();
+              this.checkUnderline();
               this.checkAltText();
 
               if (localStorage.getItem("jooa11y-remember-contrast") === "On") {
@@ -4437,7 +4457,7 @@
                     let rect = $el.getBoundingClientRect(),
                     scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                     return { top: rect.top + scrollTop}
-                };
+                  };
 
                   //'offsetTop' will always return 0 if element is hidden. We rely on offsetTop to determine if element is hidden, although we use 'getBoundingClientRect' to set the scroll position.
                   let scrollPosition;
@@ -4927,7 +4947,41 @@
                   }
               });
           }
-
+          // ============================================================
+          // Ruleset: Underlined text
+          // ============================================================
+          // check text for <u>  tags
+          checkUnderline () {
+              const underline = Array.from(this.$root.querySelectorAll('u'));
+              underline.forEach(($el) => {
+                      this.warningCount++;
+                      $el.insertAdjacentHTML(
+                          'beforebegin',
+                          this.annotate(
+                              Lang._('WARNING'),
+                              `${Lang._('TEXT_UNDERLINE_WARNING')} <hr aria-hidden="true"> ${Lang._('TEXT_UNDERLINE_WARNING_TIP')}`,
+                                true
+                          )
+                      );
+                  });
+              // check for text-decoration-line: underline
+              const computed = Array.from(this.$root.querySelectorAll('h1, h2, h3, h4, h5, h6, p, div, span, li, blockquote'));
+              computed.forEach(($el) => {
+                  let style = getComputedStyle($el),
+                  decoration = style.textDecorationLine;
+                  if (decoration === 'underline') {
+                      this.warningCount++;
+                      $el.insertAdjacentHTML(
+                          'beforebegin',
+                          this.annotate(
+                              Lang._('WARNING'),
+                              `${Lang._('TEXT_UNDERLINE_WARNING')} <hr aria-hidden="true"> ${Lang._('TEXT_UNDERLINE_WARNING_TIP')}`,
+                                true
+                          )
+                      );
+                  }
+              });
+          }
           // ============================================================
           // Ruleset: Alternative text
           // ============================================================
@@ -5988,8 +6042,7 @@
       </div>
   </div>`;
       };
-
-    }
+  }
 
   exports.Jooa11y = Jooa11y;
   exports.Lang = Lang;
